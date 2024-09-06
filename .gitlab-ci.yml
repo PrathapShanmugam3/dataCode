@@ -1,3 +1,4 @@
+
 image: maven:latest
 
 stages:
@@ -8,18 +9,19 @@ stages:
 
 variables:
   MAVEN_CLI_OPTS: "--batch-mode"
-  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_CERTDIR: ""
   DOCKER_USERNAME: "prathapshanmugam5"
   DOCKER_PASSWORD: "skp20002000SKP@"
 
+
 before_script:
-  - which docker || apt-get update && apt-get install -y docker.io
+  - apt-get update && apt-get install -y docker.io
   - docker info
   - sleep 10
+  - docker ps
 
 services:
   - docker:dind
-  - docker:dind-server
 
 build:
   stage: build
@@ -29,7 +31,7 @@ build:
 docker-build:
   stage: docker-build
   script:
-    - docker build -t prathapshanmugam5/apispring .
+    - docker build -t $DOCKER_USERNAME/apispring .
 
 docker-login:
   stage: docker-login
@@ -39,4 +41,4 @@ docker-login:
 docker-push:
   stage: docker-push
   script:
-    - docker push prathapshanmugam5/apispring
+    - docker push $DOCKER_USERNAME/apispring
