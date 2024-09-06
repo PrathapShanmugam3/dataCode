@@ -25,6 +25,7 @@ build:
   stage: build
   script:
     - mvn $MAVEN_CLI_OPTS clean install
+    - ls -l target
 
 docker-build:
   stage: docker-build
