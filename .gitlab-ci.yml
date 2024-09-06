@@ -9,6 +9,11 @@ stages:
 variables:
   MAVEN_CLI_OPTS: "--batch-mode"
   DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_USERNAME: "prathapshanmugam5"
+  DOCKER_PASSWORD: "skp20002000SKP@"
+
+before_script:
+  - which docker || apt-get update && apt-get install -y docker.io
 
 build:
   stage: build
@@ -23,7 +28,7 @@ docker-build:
 docker-login:
   stage: docker-login
   script:
-    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
 docker-push:
   stage: docker-push
