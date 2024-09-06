@@ -1,0 +1,31 @@
+image: maven:latest
+
+stages:
+  - build
+  - docker-build
+  - docker-login
+  - docker-push
+
+variables:
+  MAVEN_CLI_OPTS: "--batch-mode"
+  DOCKER_TLS_CERTDIR: "/certs"
+
+build:
+  stage: build
+  script:
+    - mvn $MAVEN_CLI_OPTS clean install
+
+docker-build:
+  stage: docker-build
+  script:
+    - docker build -t prathapshanmugam5/apispring .
+
+docker-login:
+  stage: docker-login
+  script:
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+
+docker-push:
+  stage: docker-push
+  script:
+    - docker push prathapshanmugam5/apispring
