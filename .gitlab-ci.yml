@@ -37,22 +37,26 @@ build:
 docker-build:
   stage: docker-build
   script:
-    # Build and tag the Docker image correctly
+    # Ensure the target directory and JAR file exist, then build the Docker image
     - ls -l target
     - docker build -t $DOCKER_USERNAME/apispring:latest .
   dependencies:
     - build
+  only:
+    - main  # Optional: Restrict the job to the main branch
 
 docker-login:
   stage: docker-login
   script:
-    # Log into Docker using stored credentials
+    # Log in to Docker Hub using environment variables for security
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
 docker-push:
   stage: docker-push
   script:
-    # Push the Docker image to Docker Hub
+    # Push the image to Docker Hub
     - docker push $DOCKER_USERNAME/apispring:latest
   dependencies:
     - docker-build
+  only:
+    - main  # Optional: Restrict the job to the main branch
