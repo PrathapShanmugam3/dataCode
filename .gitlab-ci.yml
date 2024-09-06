@@ -30,6 +30,7 @@ build:
 docker-build:
   stage: docker-build
   script:
+    - ls -l target
     - docker build -t $DOCKER_USERNAME/apispring .
 
 docker-login:
