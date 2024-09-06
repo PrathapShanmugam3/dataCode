@@ -14,6 +14,8 @@ variables:
 
 before_script:
   - which docker || apt-get update && apt-get install -y docker.io
+  - docker info
+  - sleep 10
 
 services:
   - docker:dind
