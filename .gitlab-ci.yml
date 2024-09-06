@@ -16,7 +16,7 @@ before_script:
   - which docker || apt-get update && apt-get install -y docker.io
 
 services:
-  docker:dind:
+  - docker:dind
 
 build:
   stage: build
