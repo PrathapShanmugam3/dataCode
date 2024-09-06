@@ -15,6 +15,9 @@ variables:
 before_script:
   - which docker || apt-get update && apt-get install -y docker.io
 
+services:
+  docker:dind:
+
 build:
   stage: build
   script:
