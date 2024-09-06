@@ -25,7 +25,7 @@ before_script:
 build:
   stage: build
   script:
-    # Run Maven build and check for the target directory
+    # Run Maven build and ensure target directory is created
     - mvn $MAVEN_CLI_OPTS clean install
     - ls -l target
   artifacts:
@@ -52,7 +52,7 @@ docker-login:
 docker-push:
   stage: docker-push
   script:
-    # Push the built Docker image to Docker Hub
+    # Push the Docker image to Docker Hub
     - docker push $DOCKER_USERNAME/apispring
   dependencies:
     - docker-build
