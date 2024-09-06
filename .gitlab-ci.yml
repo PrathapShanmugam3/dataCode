@@ -37,9 +37,9 @@ build:
 docker-build:
   stage: docker-build
   script:
-    # Ensure target directory exists and build the Docker image
+    # Build and tag the Docker image correctly
     - ls -l target
-    - docker build -t $DOCKER_USERNAME/apispring .
+    - docker build -t $DOCKER_USERNAME/apispring:latest .
   dependencies:
     - build
 
@@ -53,6 +53,6 @@ docker-push:
   stage: docker-push
   script:
     # Push the Docker image to Docker Hub
-    - docker push $DOCKER_USERNAME/apispring
+    - docker push $DOCKER_USERNAME/apispring:latest
   dependencies:
     - docker-build
