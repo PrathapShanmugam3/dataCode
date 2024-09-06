@@ -16,6 +16,7 @@ variables:
   DOCKER_PASSWORD: "skp20002000SKP@"
 
 before_script:
+  # Install Maven and check Docker daemon status
   - apk add --no-cache maven
   - docker info
   - sleep 10
@@ -24,21 +25,34 @@ before_script:
 build:
   stage: build
   script:
+    # Run Maven build and check for the target directory
     - mvn $MAVEN_CLI_OPTS clean install
     - ls -l target
+  artifacts:
+    # Store the target directory as an artifact for later stages
+    paths:
+      - target/
+    expire_in: 1 hour
 
 docker-build:
   stage: docker-build
   script:
+    # Ensure target directory exists and build the Docker image
     - ls -l target
     - docker build -t $DOCKER_USERNAME/apispring .
+  dependencies:
+    - build
 
 docker-login:
   stage: docker-login
   script:
+    # Log into Docker using stored credentials
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
 docker-push:
   stage: docker-push
   script:
+    # Push the built Docker image to Docker Hub
     - docker push $DOCKER_USERNAME/apispring
+  dependencies:
+    - docker-build
