@@ -56,6 +56,8 @@ docker-push:
   script:
     # Push the image to Docker Hub
     - docker push $DOCKER_USERNAME/apispring:latest
+    # Show the latest pushed Docker image
+    - docker images | grep $DOCKER_USERNAME/apispring
   dependencies:
     - docker-build
   only:
