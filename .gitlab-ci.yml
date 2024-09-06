@@ -1,44 +1,86 @@
 
-image: maven:latest
+# image: maven:latest
 
-stages:
-  - build
-  - docker-build
-  - docker-login
-  - docker-push
+# stages:
+#   - build
+#   - docker-build
+#   - docker-login
+#   - docker-push
 
-variables:
-  MAVEN_CLI_OPTS: "--batch-mode"
-  DOCKER_TLS_CERTDIR: ""
-  DOCKER_USERNAME: "prathapshanmugam5"
-  DOCKER_PASSWORD: "skp20002000SKP@"
+# variables:
+#   MAVEN_CLI_OPTS: "--batch-mode"
+#   DOCKER_TLS_CERTDIR: ""
+#   DOCKER_USERNAME: "prathapshanmugam5"
+#   DOCKER_PASSWORD: "skp20002000SKP@"
 
 
-before_script:
-  - apt-get update && apt-get install -y docker.io
-  - docker info
-  - sleep 10
-  - docker ps
+# before_script:
+#   - apt-get update && apt-get install -y docker.io
+#   - docker info
+#   - sleep 10
+#   - docker ps
 
-services:
-  - docker:dind
+# services:
+#   - docker:dind
 
-build:
-  stage: build
-  script:
-    - mvn $MAVEN_CLI_OPTS clean install
+# build:
+#   stage: build
+#   script:
+#     - mvn $MAVEN_CLI_OPTS clean install
 
-docker-build:
-  stage: docker-build
-  script:
-    - docker build -t $DOCKER_USERNAME/apispring .
+# docker-build:
+#   stage: docker-build
+#   script:
+#     - docker build -t $DOCKER_USERNAME/apispring .
 
-docker-login:
-  stage: docker-login
-  script:
-    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+# docker-login:
+#   stage: docker-login
+#   script:
+#     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
-docker-push:
-  stage: docker-push
-  script:
-    - docker push $DOCKER_USERNAME/apispring
+# docker-push:
+#   stage: docker-push
+#   script:
+#     - docker push $DOCKER_USERNAME/apispring
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helpdesk
+  namespace: upexcisedev
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: helpdesk
+  template:
+    metadata:
+      labels:
+        app: helpdesk
+    spec:
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+        - 8.8.8.8
+        - 4.2.2.2
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: helpdesk
+        image: prathapshanmugam5/apispring:latest       
+        ports:
+        - containerPort: 3506
+        volumeMounts:
+        - name: logs-volume
+          mountPath:  /DATA/logs/helpdesk
+      volumes:
+      - name: logs-volume
+        persistentVolumeClaim:
+          claimName: helpdesk-pvc-logs
+---
+apiVersion: v1
+kind: Service
+metadata:
+
+
