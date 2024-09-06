@@ -19,6 +19,7 @@ before_script:
 
 services:
   - docker:dind
+  - docker:dind-server
 
 build:
   stage: build
