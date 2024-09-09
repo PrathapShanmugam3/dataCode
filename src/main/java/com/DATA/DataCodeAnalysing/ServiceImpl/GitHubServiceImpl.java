@@ -202,13 +202,19 @@ public class GitHubServiceImpl implements GitHubService {
         try {
             ResponseEntity<String> getFileResponse = restTemplate.exchange(deleteFileUrl, HttpMethod.GET, new HttpEntity<>(headers), String.class);
             if (getFileResponse.getStatusCode() == HttpStatus.OK) {
-                // File exists, delete it
-                String sha = new JSONObject(getFileResponse.getBody()).getString("sha");
-                String deletePayload = "{\"message\":\"Delete file " + fileName + "\",\"sha\":\"" + sha + "\"}";
-                HttpEntity<String> deleteRequest = new HttpEntity<>(deletePayload, headers);
-                ResponseEntity<String> deleteResponse = restTemplate.exchange(deleteFileUrl, HttpMethod.DELETE, deleteRequest, String.class);
-                if (deleteResponse.getStatusCode() != HttpStatus.OK) {
-                    return "Failed to delete the existing file. Status code: " + deleteResponse.getStatusCode() + ". Response: " + deleteResponse.getBody();
+                // File exists, manually extract the SHA from the JSON response
+                String responseBody = getFileResponse.getBody();
+                String sha = extractShaFromResponse(responseBody);
+
+                if (sha != null) {
+                    String deletePayload = "{\"message\":\"Delete file " + fileName + "\",\"sha\":\"" + sha + "\"}";
+                    HttpEntity<String> deleteRequest = new HttpEntity<>(deletePayload, headers);
+                    ResponseEntity<String> deleteResponse = restTemplate.exchange(deleteFileUrl, HttpMethod.DELETE, deleteRequest, String.class);
+                    if (deleteResponse.getStatusCode() != HttpStatus.OK) {
+                        return "Failed to delete the existing file. Status code: " + deleteResponse.getStatusCode() + ". Response: " + deleteResponse.getBody();
+                    }
+                } else {
+                    return "Failed to extract SHA from the response.";
                 }
             }
         } catch (Exception e) {
@@ -239,5 +245,19 @@ public class GitHubServiceImpl implements GitHubService {
         }
     }
 
+    private String extractShaFromResponse(String responseBody) {
+        // Simple string search to extract the "sha" field from the response
+        // Example response: {"sha": "abc123", "other": "value"}
+        String shaKey = "\"sha\":\"";
+        int shaStart = responseBody.indexOf(shaKey);
+        if (shaStart != -1) {
+            shaStart += shaKey.length();
+            int shaEnd = responseBody.indexOf("\"", shaStart);
+            if (shaEnd != -1) {
+                return responseBody.substring(shaStart, shaEnd);
+            }
+        }
+        return null; // sha not found
+    }
 
 }
