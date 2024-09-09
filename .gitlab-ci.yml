@@ -78,7 +78,7 @@ variables:
   MAVEN_CLI_OPTS: "--batch-mode"
   DOCKER_TLS_CERTDIR: ""
   DOCKER_USERNAME: "prathapshanmugam5"
-  DOCKER_PASSWORD: "skp20002000SKP@"
+  DOCKER_PASSWORD: "skp200020020SKP@"
 
 before_script:
   - apk add --no-cache maven
@@ -115,6 +115,8 @@ docker-login:
 docker-push:
   stage: docker-push
   script:
+    - echo "Checking for built images..."
+    - docker images
     - docker images | grep $DOCKER_USERNAME/apispring || { echo "Image not found"; exit 1; }
     - docker push $DOCKER_USERNAME/apispring:latest || { echo "Docker push failed"; exit 1; }
   dependencies:
