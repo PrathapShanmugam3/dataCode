@@ -63,6 +63,7 @@
 #   only:
 #     - main
 
+
 image: docker:latest
 
 services:
@@ -118,6 +119,7 @@ docker-push:
     - echo "Checking for built images..."
     - docker images
     - docker images | grep $DOCKER_USERNAME/apispring || { echo "Image not found"; exit 1; }
+    - echo "Pushing Docker image..."
     - docker push $DOCKER_USERNAME/apispring:latest || { echo "Docker push failed"; exit 1; }
   dependencies:
     - docker-build
