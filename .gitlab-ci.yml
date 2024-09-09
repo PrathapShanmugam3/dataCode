@@ -120,12 +120,13 @@ docker-push:
   script:
     - echo "Checking for built Docker images..."
     - docker images
-    - if docker images | grep -q $IMAGE_NAME; then
-        echo "Pushing Docker image to Docker Hub: $IMAGE_NAME:$IMAGE_TAG";
-        docker push $IMAGE_NAME:$IMAGE_TAG;
+    - |
+      if docker images | grep -q $IMAGE_NAME; then
+        echo "Pushing Docker image to Docker Hub: $IMAGE_NAME:$IMAGE_TAG"
+        docker push $IMAGE_NAME:$IMAGE_TAG
       else
-        echo "Docker image not found";
-        exit 1;
+        echo "Docker image not found"
+        exit 1
       fi
   dependencies:
     - docker-build
