@@ -99,9 +99,7 @@ build:
 docker-build:
   stage: docker-build
   script:
-    - ls -l target
-    - echo "Docker Username: $DOCKER_USERNAME"
-    - docker build -t $IMAGE_NAME:$IMAGE_TAG . || { echo "Docker build failed"; exit 1; }
+    - ls -l target && echo "Docker Username: $DOCKER_USERNAME" && docker build -t $IMAGE_NAME:$IMAGE_TAG . || { echo "Docker build failed"; exit 1; }
   dependencies:
     - build
   only:
