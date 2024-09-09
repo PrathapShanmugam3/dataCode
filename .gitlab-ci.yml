@@ -48,11 +48,11 @@ docker-build:
 
 
 trigger-url:
-  stage: docker-push  # Corrected to use an existing stage
+  stage: trigger-url  # Corrected to use an existing stage
   script:
     # Trigger the URL after pushing Docker image
     - curl -X POST "https://api.render.com/deploy/srv-cqbqbiqju9rs7396972g?key=zUFKBh8MaE4"
   dependencies:
-    - docker-push
+    - docker-build
   only:
     - main
