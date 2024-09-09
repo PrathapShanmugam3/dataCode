@@ -78,7 +78,7 @@ variables:
   MAVEN_CLI_OPTS: "--batch-mode"
   DOCKER_TLS_CERTDIR: ""
   DOCKER_USERNAME: "prathapshanmugam5"
-  DOCKER_PASSWORD: "skp200020020SKP@"
+  DOCKER_PASSWORD: "skp20002000SKP@"
 
 before_script:
   - apk add --no-cache maven
