@@ -1,3 +1,71 @@
+# image: docker:latest
+
+# services:
+#   - docker:dind
+
+# stages:
+#   - build
+#   - docker-build
+#   - docker-login
+#   - docker-push
+
+# variables:
+#   MAVEN_CLI_OPTS: "--batch-mode"
+#   DOCKER_TLS_CERTDIR: ""
+#   DOCKER_USERNAME: "prathapshanmugam5"
+#   DOCKER_PASSWORD: "skp20002000SKP@"
+
+# before_script:
+#   # Install Maven and check Docker daemon status
+#   - apk add --no-cache maven
+#   - docker info
+
+# build:
+#   stage: build
+#   script:
+#     # Run Maven build and ensure target directory is created
+#     - mvn $MAVEN_CLI_OPTS clean install
+#     - ls -l target
+#   artifacts:
+#     # Store the target directory as an artifact for later stages
+#     paths:
+#       - target/
+#     expire_in: 1 hour
+
+# docker-build:
+#   stage: docker-build
+#   script:
+#     # Check if target directory and JAR file exist, then build the Docker image
+#     - ls -l target
+#     - docker build -t $DOCKER_USERNAME/apispring:latest .
+#   dependencies:
+#     - build
+#   only:
+#     - main
+
+# docker-login:
+#   stage: docker-login
+#   script:
+#     # Log in to Docker Hub
+#     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+#   only:
+#     - main
+
+# docker-push:
+#   stage: docker-push
+#   script:
+#     # Push the Docker image to Docker Hub
+#     - docker push $DOCKER_USERNAME/apispring:latest
+#     # Verify the image was pushed successfully
+#     - docker images | grep $DOCKER_USERNAME/apispring
+#   dependencies:
+#     - docker-build
+#   only:
+#     - main
+
+
+
+
 image: docker:latest
 
 services:
@@ -12,6 +80,7 @@ stages:
 variables:
   MAVEN_CLI_OPTS: "--batch-mode"
   DOCKER_TLS_CERTDIR: ""
+  # The Docker username and password should be stored securely in GitLab CI/CD variables
   DOCKER_USERNAME: "prathapshanmugam5"
   DOCKER_PASSWORD: "skp20002000SKP@"
 
@@ -46,7 +115,7 @@ docker-build:
 docker-login:
   stage: docker-login
   script:
-    # Log in to Docker Hub
+    # Log in to Docker Hub using credentials stored as GitLab CI/CD variables
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
   only:
     - main
@@ -62,3 +131,4 @@ docker-push:
     - docker-build
   only:
     - main
+
