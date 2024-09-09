@@ -37,9 +37,9 @@ docker-build:
   script:
     # Check if target directory and JAR file exist, then build the Docker image
     - ls -l target
-    - docker build -t $DOCKER_USERNAME/apispring:latest .
+    - docker build -t $DOCKER_USERNAME/datacode:latest .
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-    - docker push $DOCKER_USERNAME/apispring:latest
+    - docker push $DOCKER_USERNAME/datacode:latest
       
   dependencies:
     - build
