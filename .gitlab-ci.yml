@@ -52,7 +52,4 @@ trigger-url:
   script:
     # Trigger the URL after pushing Docker image
     - curl -X POST "https://api.render.com/deploy/srv-cqbqbiqju9rs7396972g?key=zUFKBh8MaE4"
-  dependencies:
-    - docker-build
-  only:
-    - main
+ 
