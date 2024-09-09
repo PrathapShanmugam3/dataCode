@@ -80,7 +80,6 @@ stages:
 variables:
   MAVEN_CLI_OPTS: "--batch-mode"
   DOCKER_TLS_CERTDIR: ""
-  # The Docker username and password should be stored securely in GitLab CI/CD variables
   DOCKER_USERNAME: "prathapshanmugam5"
   DOCKER_PASSWORD: "skp20002000SKP@"
 
@@ -93,7 +92,7 @@ build:
   stage: build
   script:
     # Run Maven build and ensure target directory is created
-    - mvn $MAVEN_CLI_OPTS clean install
+    - mvn $MAVEN_CLI_OPTS clean install || { echo "Maven build failed"; exit 1; }
     - ls -l target
   artifacts:
     # Store the target directory as an artifact for later stages
@@ -106,7 +105,7 @@ docker-build:
   script:
     # Check if target directory and JAR file exist, then build the Docker image
     - ls -l target
-    - docker build -t $DOCKER_USERNAME/apispring:latest .
+    - docker build -t $DOCKER_USERNAME/apispring:latest . || { echo "Docker build failed"; exit 1; }
   dependencies:
     - build
   only:
@@ -124,11 +123,10 @@ docker-push:
   stage: docker-push
   script:
     # Push the Docker image to Docker Hub
-    - docker push $DOCKER_USERNAME/apispring:latest
+    - docker push $DOCKER_USERNAME/apispring:latest || { echo "Docker push failed"; exit 1; }
     # Verify the image was pushed successfully
     - docker images | grep $DOCKER_USERNAME/apispring
   dependencies:
     - docker-build
   only:
     - main
-
