@@ -40,6 +40,7 @@ docker-build:
     - docker build -t $DOCKER_USERNAME/datacode:latest .
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
     - docker push $DOCKER_USERNAME/datacode:latest
+    - curl -X POST "https://api.render.com/deploy/srv-cqbqbiqju9rs7396972g?key=zUFKBh8MaE4"
       
   dependencies:
     - build
@@ -47,9 +48,3 @@ docker-build:
     - main
 
 
-trigger-url:
-  stage: trigger-url  # Corrected to use an existing stage
-  script:
-    # Trigger the URL after pushing Docker image
-    - curl -X POST "https://api.render.com/deploy/srv-cqbqbiqju9rs7396972g?key=zUFKBh8MaE4"
- 
