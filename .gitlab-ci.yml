@@ -77,13 +77,12 @@ stages:
 variables:
   MAVEN_CLI_OPTS: "--batch-mode"
   DOCKER_TLS_CERTDIR: ""
-  DOCKER_USERNAME: "prathapshanmugam5" # Change to your Docker Hub username
-  DOCKER_PASSWORD: "skp20002000SKP@"   # Change to your Docker Hub password
+  DOCKER_USERNAME: "prathapshanmugam5"
+  DOCKER_PASSWORD: "skp20002000SKP@"
   IMAGE_NAME: "$DOCKER_USERNAME/apispring"
   IMAGE_TAG: "latest"
 
 before_script:
-  # Install Maven as it is required for the build stage
   - apk add --no-cache maven
   - docker info
 
@@ -101,7 +100,7 @@ docker-build:
   stage: docker-build
   script:
     - ls -l target
-    - echo "Building Docker image: $IMAGE_NAME:$IMAGE_TAG"
+    - echo "Docker Username: $DOCKER_USERNAME"
     - docker build -t $IMAGE_NAME:$IMAGE_TAG . || { echo "Docker build failed"; exit 1; }
   dependencies:
     - build
@@ -112,7 +111,7 @@ docker-login:
   stage: docker-login
   script:
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-    - echo "Docker login successful"
+    - echo "Login successful"
   only:
     - main
 
@@ -121,9 +120,13 @@ docker-push:
   script:
     - echo "Checking for built Docker images..."
     - docker images
-    - docker images | grep $IMAGE_NAME || { echo "Docker image not found"; exit 1; }
-    - echo "Pushing Docker image to Docker Hub: $IMAGE_NAME:$IMAGE_TAG"
-    - docker push $IMAGE_NAME:$IMAGE_TAG || { echo "Docker push failed"; exit 1; }
+    - if docker images | grep -q $IMAGE_NAME; then
+        echo "Pushing Docker image to Docker Hub: $IMAGE_NAME:$IMAGE_TAG";
+        docker push $IMAGE_NAME:$IMAGE_TAG;
+      else
+        echo "Docker image not found";
+        exit 1;
+      fi
   dependencies:
     - docker-build
   only:
