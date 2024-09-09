@@ -99,12 +99,14 @@ docker-build:
   stage: docker-build
   script:
     - ls -l target
+    - echo "Docker Username: $DOCKER_USERNAME"
     - docker build -t $DOCKER_USERNAME/apispring:latest . || { echo "Docker build failed"; exit 1; }
   dependencies:
     - build
   only:
     - main
 
+    
 docker-login:
   stage: docker-login
   script:
