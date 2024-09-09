@@ -1,68 +1,3 @@
-# image: docker:latest
-
-# services:
-#   - docker:dind
-
-# stages:
-#   - build
-#   - docker-build
-#   - docker-login
-#   - docker-push
-
-# variables:
-#   MAVEN_CLI_OPTS: "--batch-mode"
-#   DOCKER_TLS_CERTDIR: ""
-#   DOCKER_USERNAME: "prathapshanmugam5"
-#   DOCKER_PASSWORD: "skp20002000SKP@"
-
-# before_script:
-#   # Install Maven and check Docker daemon status
-#   - apk add --no-cache maven
-#   - docker info
-
-# build:
-#   stage: build
-#   script:
-#     # Run Maven build and ensure target directory is created
-#     - mvn $MAVEN_CLI_OPTS clean install
-#     - ls -l target
-#   artifacts:
-#     # Store the target directory as an artifact for later stages
-#     paths:
-#       - target/
-#     expire_in: 1 hour
-
-# docker-build:
-#   stage: docker-build
-#   script:
-#     # Check if target directory and JAR file exist, then build the Docker image
-#     - ls -l target
-#     - docker build -t $DOCKER_USERNAME/apispring:latest .
-#   dependencies:
-#     - build
-#   only:
-#     - main
-
-# docker-login:
-#   stage: docker-login
-#   script:
-#     # Log in to Docker Hub
-#     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-#   only:
-#     - main
-
-# docker-push:
-#   stage: docker-push
-#   script:
-#     # Push the Docker image to Docker Hub
-#     - docker push $DOCKER_USERNAME/apispring:latest
-#     # Verify the image was pushed successfully
-#     - docker images | grep $DOCKER_USERNAME/apispring
-#   dependencies:
-#     - docker-build
-#   only:
-#     - main
-
 image: docker:latest
 
 services:
@@ -79,19 +14,20 @@ variables:
   DOCKER_TLS_CERTDIR: ""
   DOCKER_USERNAME: "prathapshanmugam5"
   DOCKER_PASSWORD: "skp20002000SKP@"
-  IMAGE_NAME: "$DOCKER_USERNAME/apispring"
-  IMAGE_TAG: "latest"
 
 before_script:
+  # Install Maven and check Docker daemon status
   - apk add --no-cache maven
   - docker info
 
 build:
   stage: build
   script:
-    - mvn $MAVEN_CLI_OPTS clean install || { echo "Maven build failed"; exit 1; }
+    # Run Maven build and ensure target directory is created
+    - mvn $MAVEN_CLI_OPTS clean install
     - ls -l target
   artifacts:
+    # Store the target directory as an artifact for later stages
     paths:
       - target/
     expire_in: 1 hour
@@ -99,34 +35,13 @@ build:
 docker-build:
   stage: docker-build
   script:
-    - ls -l target && echo "Docker Username: $DOCKER_USERNAME" && docker build -t $IMAGE_NAME:$IMAGE_TAG . || { echo "Docker build failed"; exit 1; }
+    # Check if target directory and JAR file exist, then build the Docker image
+    - ls -l target
+    - docker build -t $DOCKER_USERNAME/apispring:latest .
+    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+    - docker push $DOCKER_USERNAME/apispring:latest
+      
   dependencies:
     - build
-  only:
-    - main
-
-docker-login:
-  stage: docker-login
-  script:
-    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-    - echo "Login successful"
-  only:
-    - main
-
-docker-push:
-  stage: docker-push
-  script:
-    - echo "Checking for built Docker images..."
-    - docker images
-    - |
-      if docker images | grep -q $IMAGE_NAME; then
-        echo "Pushing Docker image to Docker Hub: $IMAGE_NAME:$IMAGE_TAG"
-        docker push $IMAGE_NAME:$IMAGE_TAG
-      else
-        echo "Docker image not found"
-        exit 1
-      fi
-  dependencies:
-    - docker-build
   only:
     - main
