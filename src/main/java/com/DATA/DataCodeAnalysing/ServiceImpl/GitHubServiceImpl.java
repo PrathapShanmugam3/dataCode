@@ -164,4 +164,80 @@ public class GitHubServiceImpl implements GitHubService {
         }
     }
 
+    @Override
+    public String updateImage(MultipartFile file, String imagePath) {
+        if (file == null || imagePath == null || imagePath.isEmpty()) {
+            return "Invalid input.";
+        }
+        
+        // Extract the file extension
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName == null) {
+            return "Invalid file.";
+        }
+        
+        String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+        String baseFileName = "image";  // Base filename for your images
+        String fileName = baseFileName + fileExtension;
+
+        // Prepare file content
+        byte[] fileContent;
+        try {
+            fileContent = file.getBytes();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Failed to read file content.";
+        }
+        
+        String base64Content = Base64.getEncoder().encodeToString(fileContent);
+        
+        // Create headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "token " + githubToken);
+        headers.set("Accept", "application/vnd.github.v3+json");
+        headers.set("Content-Type", "application/json");
+        
+        // Check if the file exists and delete it if it does
+        String deleteFileUrl = apiUrl + "/" + imagePath;
+        try {
+            ResponseEntity<String> getFileResponse = restTemplate.exchange(deleteFileUrl, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+            if (getFileResponse.getStatusCode() == HttpStatus.OK) {
+                // File exists, delete it
+                String sha = new JSONObject(getFileResponse.getBody()).getString("sha");
+                String deletePayload = "{\"message\":\"Delete file " + fileName + "\",\"sha\":\"" + sha + "\"}";
+                HttpEntity<String> deleteRequest = new HttpEntity<>(deletePayload, headers);
+                ResponseEntity<String> deleteResponse = restTemplate.exchange(deleteFileUrl, HttpMethod.DELETE, deleteRequest, String.class);
+                if (deleteResponse.getStatusCode() != HttpStatus.OK) {
+                    return "Failed to delete the existing file. Status code: " + deleteResponse.getStatusCode() + ". Response: " + deleteResponse.getBody();
+                }
+            }
+        } catch (Exception e) {
+            // If the file doesn't exist (404 Not Found), proceed to upload
+            if (!e.getMessage().contains("404")) {
+                e.printStackTrace();
+                return "Error occurred while checking the file existence.";
+            }
+        }
+        
+        // Prepare the JSON payload for uploading the new file
+        String json = "{\"message\":\"Update image " + fileName + "\",\"content\":\"" + base64Content + "\"}";
+        String uploadUrl = apiUrl + "/" + imagePath;
+        HttpEntity<String> uploadRequestEntity = new HttpEntity<>(json, headers);
+        
+        // Upload the new file
+        try {
+            ResponseEntity<String> uploadResponse = restTemplate.exchange(uploadUrl, HttpMethod.PUT, uploadRequestEntity, String.class);
+            if (uploadResponse.getStatusCode() == HttpStatus.CREATED) {
+                String fileUrl = "https://github.com/PrathapShanmugam3/imageStore/raw/main/" + imagePath;
+                return "Image updated successfully. File URL: " + fileUrl;
+            } else {
+                return "Failed to update image. Status code: " + uploadResponse.getStatusCode() + ". Response: " + uploadResponse.getBody();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error occurred while updating the image.";
+        }
+    }
+
+
 }
