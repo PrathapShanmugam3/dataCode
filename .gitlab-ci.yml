@@ -43,9 +43,6 @@ docker-build:
     - docker push $DOCKER_USERNAME/datacode:latest
     - curl -X POST "https://api.render.com/deploy/srv-cqbqbiqju9rs7396972g?key=zUFKBh8MaE4"
       
-  dependencies:
-    - build
-  only:
-    - main
+
 
 
