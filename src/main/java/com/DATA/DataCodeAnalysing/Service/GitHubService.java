@@ -13,5 +13,7 @@ public interface GitHubService {
 
 
 	public String updateImage(MultipartFile file, String imagePath);
+	
+	public String updateDocument(MultipartFile file, String documentPath);
 
 }

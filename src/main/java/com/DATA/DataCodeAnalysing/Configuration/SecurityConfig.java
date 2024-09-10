@@ -19,7 +19,7 @@ public class SecurityConfig {
 		// Allow access to Swagger UI
 		.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 		// Permit other API endpoints
-		.requestMatchers("customdata/getdata", "user/register", "user/login", "files/upload/image", "files/upload/document","files/update/image").permitAll()
+		.requestMatchers("customdata/getdata", "user/register", "user/login", "files/upload/image", "files/upload/document","files/update/image","files/update/document").permitAll()
 		.anyRequest().authenticated()
 		.and().httpBasic().and()
 		.sessionManagement()

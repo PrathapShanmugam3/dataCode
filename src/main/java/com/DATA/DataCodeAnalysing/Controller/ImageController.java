@@ -47,5 +47,14 @@ public class ImageController {
 			return "Error: " + e.getMessage();
 		}
 	}
+	
+	@PutMapping(value = "/update/document", headers = ("Content-Type=multipart/*"), consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public String updateDocument(@RequestPart("file") MultipartFile file, @RequestParam("documentPath") String documentPath) {
+		try {
+			return gitHubService.updateDocument(file, documentPath);
+		} catch (Exception e) {
+			return "Error: " + e.getMessage();
+		}
+	}
 
 }
