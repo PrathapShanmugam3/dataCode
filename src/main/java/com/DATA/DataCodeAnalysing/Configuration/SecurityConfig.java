@@ -12,12 +12,14 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 	
-	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http)throws Exception{
 		http.csrf().disable()
 		.authorizeRequests()
-		.requestMatchers("customdata/getdata","user/register","user/login","files/upload/image","files/upload/document").permitAll()
+		// Allow access to Swagger UI
+		.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+		// Permit other API endpoints
+		.requestMatchers("customdata/getdata", "user/register", "user/login", "files/upload/image", "files/upload/document","files/update/image").permitAll()
 		.anyRequest().authenticated()
 		.and().httpBasic().and()
 		.sessionManagement()
