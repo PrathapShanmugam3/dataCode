@@ -4,10 +4,9 @@ services:
   - docker:dind
 
 stages:
-  - build
+  - maven-build
   - docker-build
-  - docker-login
-  - docker-push
+
 
 variables:
   MAVEN_CLI_OPTS: "--batch-mode"
@@ -21,7 +20,7 @@ before_script:
   - docker info
 
 build:
-  stage: build
+  stage: maven-build
   script:
     # Run Maven build and ensure target directory is created
     - mvn $MAVEN_CLI_OPTS clean install
