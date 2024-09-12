@@ -1,199 +1,130 @@
 package com.DATA.DataCodeAnalysing.ServiceImpl;
 
-
-
-import java.util.List;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.DATA.DataCodeAnalysing.Dto.BaseDTO;
-
 import com.DATA.DataCodeAnalysing.Entity.UserInfo;
 import com.DATA.DataCodeAnalysing.Repositary.UserInfoRepositary;
 import com.DATA.DataCodeAnalysing.Service.UserRegisterLoginService;
+import com.DATA.DataCodeAnalysing.Util.JwtUtil;
 
 @Service
 public class UserRegisterLoginServiceImpl implements UserRegisterLoginService {
 
-	@Autowired
-	BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-	@Autowired
-	UserInfoRepositary userInfoRepositary;
+    @Autowired
+    private UserInfoRepositary userInfoRepositary;
 
-	@Autowired
-	CustomDataServiceImpl customDataServiceImpl;
+    @Autowired
+    private JwtUtil jwtUtil; // Inject JWT utility for token generation and validation
 
-	@Override
-	public BaseDTO UserRegistration(UserInfo userInfo) {
-		
-		
+    @Override
+    public BaseDTO UserRegistration(UserInfo userInfo) {
+        BaseDTO baseDTO = new BaseDTO();
 
-		BaseDTO baseDTO = new BaseDTO();
+        // Validate input fields
+        if (userInfo.getEmail().isEmpty() || userInfo.getUsername().isEmpty() || userInfo.getPassword().isEmpty()) {
+            baseDTO.setStatusCode(1);
+            baseDTO.setErrorMessage("Please fill all the fields");
+            baseDTO.setResponseContent(null);
+            return baseDTO;
+        }
 
-		BaseDTO baseDTOOne = new BaseDTO();
-		
-		
-		
-		if (userInfo.getEmail() == "" || userInfo.getUsername() == "" || userInfo.getPassword() == "" || userInfo.getEmail() == null||userInfo.getUsername() == null||userInfo.getPassword() == null) {
+        // Check if user with the given email or username already exists
+        UserInfo userDetailByEmail = userInfoRepositary.findByEmail(userInfo.getEmail());
+        UserInfo userDetailByUsername = userInfoRepositary.findByUsername(userInfo.getUsername());
 
-			baseDTO.setStatusCode(1);
-			baseDTO.setErrorMessage("Please Fill All the fields");
-			baseDTO.setResponseContent(null);
-			return baseDTO;
-		}
+        if (userDetailByEmail != null || userDetailByUsername != null) {
+            baseDTO.setStatusCode(1);
+            baseDTO.setErrorMessage("User already exists");
+            baseDTO.setResponseContent(null);
+            return baseDTO;
+        }
 
+        // Encrypt the password
+        String hashedPassword = bCryptPasswordEncoder.encode(userInfo.getPassword());
+        userInfo.setPassword(hashedPassword);
 
-//		DataCodeDetails dataCodeDetails = new DataCodeDetails();
-//		DataCodeDetails dataCodeDetailsOne = new DataCodeDetails();
-//
-//		Map<String, String> placeholderMap = new HashMap<>();
-//		Map<String, String> placeholderMapOne = new HashMap<>();
+        // Save the new user
+        UserInfo savedUser = userInfoRepositary.save(userInfo);
 
-		if (userInfo.getEmail() != "" && userInfo.getUsername() != "" && userInfo.getPassword() != "" || userInfo.getEmail() != null||userInfo.getUsername() != null||userInfo.getPassword() != null ) {
+        // Generate JWT token for the newly registered user (optional auto-login after registration)
+        String token = jwtUtil.generateToken(savedUser.getUsername());
 
-//			placeholderMap.put("username", "'" + userInfo.getUsername() + "'");
-//			placeholderMapOne.put("email", "'" + userInfo.getEmail() + "'");
-//
-//			dataCodeDetails.setDataCode("GET_USER_DETAILS_BY_USERNAME");
-//			dataCodeDetailsOne.setDataCode("GET_USER_DETAILS_BY_EMAIL");
-//
-//			dataCodeDetails.setPlaceholderKeyValueMap(placeholderMap);
-//			dataCodeDetailsOne.setPlaceholderKeyValueMap(placeholderMapOne);
-			
-			  UserInfo userDetailByEmail=userInfoRepositary.findByEmail(userInfo.getEmail());
-			  UserInfo userDetailUserName=userInfoRepositary.findByUsername(userInfo.getUsername());
-		        
-		        if(userDetailUserName!=null) {
-		        	baseDTOOne.setStatusCode(0);
-		        	baseDTOOne.setErrorMessage("Login Success");
-		        	baseDTOOne.setResponseContent(userDetailUserName); 
-		        	
-		        }
-		        if(userDetailUserName==null) {
-		        	baseDTOOne.setStatusCode(1);
-		        	baseDTOOne.setErrorMessage("User Already Exists");
-		        	baseDTOOne.setResponseContent(userDetailUserName); 
-		        	
-		        }
-		        
-		        if(userDetailByEmail!=null) {
-		        	 baseDTO.setStatusCode(0);
-	                 baseDTO.setErrorMessage("Login Success");
-	                 baseDTO.setResponseContent(userDetailByEmail); 
-		        	
-		        }
-		        if(userDetailByEmail==null) {
-		        	 baseDTO.setStatusCode(1);
-	                baseDTO.setErrorMessage("User Already Exists");
-	                baseDTO.setResponseContent(userDetailByEmail); 
-		        	
-		        }
-			
+        // Set response
+        baseDTO.setStatusCode(0);
+        baseDTO.setErrorMessage("Registration successful");
+        baseDTO.setResponseContent(token); // Return token
+        return baseDTO;
+    }
 
-			if (baseDTO.getStatusCode() == 0 || baseDTOOne.getStatusCode() == 0) {
-				baseDTO.setStatusCode(1);
-				baseDTO.setErrorMessage("User Already Exists");
-				baseDTO.setResponseContent(null);
-				return baseDTO;
-			}
+    @Override
+    public BaseDTO UserLogin(UserInfo userInfo) {
+        BaseDTO baseDTO = new BaseDTO();
 
-			if (baseDTO.getStatusCode() == 1 && baseDTOOne.getStatusCode() == 1) {
-				String hashedPassword = bCryptPasswordEncoder.encode(userInfo.getPassword());
-				userInfo.setPassword(hashedPassword);
+        // Validate input fields
+        if (userInfo.getEmail().isEmpty() || userInfo.getPassword().isEmpty()) {
+            baseDTO.setStatusCode(1);
+            baseDTO.setErrorMessage("Please fill all the fields");
+            baseDTO.setResponseContent(null);
+            return baseDTO;
+        }
 
-				UserInfo userDetail = userInfoRepositary.save(userInfo);
+        // Fetch user details by email
+        UserInfo userDetail = userInfoRepositary.findByEmail(userInfo.getEmail());
 
-				baseDTO.setStatusCode(0);
-				baseDTO.setErrorMessage("Register Success");
-				baseDTO.setResponseContent(userDetail);
-				return baseDTO;
-			}
+        if (userDetail != null) {
+            // Check if the password matches
+            if (bCryptPasswordEncoder.matches(userInfo.getPassword(), userDetail.getPassword())) {
+                // Generate JWT token
+                String token = jwtUtil.generateToken(userDetail.getUsername());
 
-		}
+                // Return login success with token
+                baseDTO.setStatusCode(0);
+                baseDTO.setErrorMessage("Login successful");
+                baseDTO.setResponseContent(token); // Return JWT token
+                return baseDTO;
+            } else {
+                baseDTO.setStatusCode(1);
+                baseDTO.setErrorMessage("Invalid password");
+                baseDTO.setResponseContent(null);
+                return baseDTO;
+            }
+        } else {
+            baseDTO.setStatusCode(1);
+            baseDTO.setErrorMessage("User does not exist");
+            baseDTO.setResponseContent(null);
+            return baseDTO;
+        }
+    }
 
+    // Optional: Method to validate JWT token if needed for secured endpoints
+    public BaseDTO validateToken(String token) {
+        BaseDTO baseDTO = new BaseDTO();
 
+        try {
+            String username = jwtUtil.extractUsername(token);
+            UserInfo userDetail = userInfoRepositary.findByUsername(username);
 
-		return baseDTO;
-	}
+            if (userDetail != null && jwtUtil.validateToken(token, userDetail.getUsername())) {
+                baseDTO.setStatusCode(0);
+                baseDTO.setErrorMessage("Token is valid");
+                baseDTO.setResponseContent(userDetail); // Return user details if token is valid
+            } else {
+                baseDTO.setStatusCode(1);
+                baseDTO.setErrorMessage("Invalid or expired token");
+                baseDTO.setResponseContent(null);
+            }
+        } catch (Exception e) {
+            baseDTO.setStatusCode(1);
+            baseDTO.setErrorMessage("Invalid token");
+            baseDTO.setResponseContent(null);
+        }
 
-	@Override
-	public BaseDTO UserLogin(UserInfo userInfo) {
-		
-	    BaseDTO baseDTO = new BaseDTO();
-
-//	    DataCodeDetails dataCodeDetailsOne = new DataCodeDetails();
-//	    Map<String, String> placeholderMapOne = new HashMap<>();
-
-	    if (!userInfo.getEmail().isEmpty() && !userInfo.getPassword().isEmpty()) {
-	    	
-//	    	placeholderMapOne.put("email", "'" + userInfo.getEmail() + "'");
-//	        dataCodeDetailsOne.setDataCode("GET_USER_DETAILS_BY_EMAIL");
-//	        dataCodeDetailsOne.setPlaceholderKeyValueMap(placeholderMapOne);
-//	        
-//	        userInfo.setUsername("prathap"); 
-	    
-	        UserInfo userDetail=userInfoRepositary.findByEmail(userInfo.getEmail());
-	        
-	        if(userDetail!=null) {
-	        	 baseDTO.setStatusCode(0);
-                 baseDTO.setErrorMessage("Login Success");
-                 baseDTO.setResponseContent(userDetail); 
-                 
-               
-                
-	        	
-	        }
-	        if(userDetail==null) {
-	        	 baseDTO.setStatusCode(1);
-                baseDTO.setErrorMessage("User Not Found");
-                baseDTO.setResponseContent(userDetail); 
-          
-                
-	        	
-	        }
-	        
-	    
-
-	        if (baseDTO.getStatusCode() == 0) {
-	            // Assuming baseDTO.getResponseContent() returns a list of maps, where each map is a row from the database
-	        
-
-	            	               // Get the first (and only) user record
-	                String storedPassword = userDetail.getPassword();
-
-	                if (bCryptPasswordEncoder.matches(userInfo.getPassword(), storedPassword)) {
-	                    baseDTO.setStatusCode(0);
-	                    baseDTO.setErrorMessage("Login Success");
-	                    baseDTO.setResponseContent(userDetail); // Optionally, you can set the user info as the response content
-	                    return baseDTO;
-	                } else {
-	                    baseDTO.setStatusCode(1);
-	                    baseDTO.setErrorMessage("Invalid password");
-	                    baseDTO.setResponseContent(null);
-	                    return baseDTO;
-	                }
-	            } else {
-	                baseDTO.setStatusCode(1);
-	                baseDTO.setErrorMessage("User does not exist");
-	                baseDTO.setResponseContent(null);
-	                return baseDTO;
-	            }
-	        }
-
-	    
-
-	    if (userInfo.getEmail().isEmpty() || userInfo.getPassword().isEmpty()) {
-	        baseDTO.setStatusCode(1);
-	        baseDTO.setErrorMessage("Please fill all the fields");
-	        baseDTO.setResponseContent(null);
-	        return baseDTO;
-	    }
-
-	    return baseDTO;
-	}
-
+        return baseDTO;
+    }
 }
