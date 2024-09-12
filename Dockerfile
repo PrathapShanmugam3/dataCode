@@ -32,7 +32,7 @@ ENV TZ=Asia/Kolkata
 WORKDIR /usr/src/app
 
 # Copy the JAR from the build stage
-COPY --from=build /usr/src/app/target/devarCabs.jar /usr/src/app/app.jar
+COPY --from=build /usr/src/app/target/devops.jar /usr/src/app/app.jar
 
 # Expose the port the application will run on
 EXPOSE 8080
